@@ -7,6 +7,8 @@ using System.Windows.Forms;
 using System.IO;
 using System.ComponentModel;
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
+using System.Threading;
 
 namespace CustomPropertiesEditor
 {
@@ -20,6 +22,7 @@ namespace CustomPropertiesEditor
 			NOT_EXIST,
 			NO_FILES,
 			WRONG_ARG,
+			OPEN_ERROR,
 			UNKNOWN_ERROR,
 			UNKNOWN
 		}
@@ -79,48 +82,18 @@ namespace CustomPropertiesEditor
 
 		internal static HelperResult AddFile(BindingSource bindingSource, string path)
 		{
-			//Console.WriteLine(path);
+
 			if (!File.Exists(path))
 				return HelperResult.NOT_EXIST;
 
-			//Console.WriteLine("Extension= " + Path.GetExtension(path).ToLower());
+			FileObj file = new FileObj(path);
 
-			const string prt = ".sldprt";
-			const string asm = ".sldasm";
-			const string drw = ".slddrw";
-			string ext = Path.GetExtension(path).ToLower();
-
-			if ( !(ext == prt ||
-				ext == asm ||
-				ext == drw) )
-			{
-				//Console.WriteLine("Wrong ext");
+			if (file.SwType_e == SolidWorks.Interop.swconst.swDocumentTypes_e.swDocNONE)
 				return HelperResult.NO_FILES;
-			}
 
-
-			FileObj file = new FileObj();
-			file.PathToFile = path;
-			file.Note = "";
-			file.Name = Path.GetFileName(path);
-			file.FileType = Path.GetExtension(path).ToLower();
-			//DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
 			try
 			{
-				/**/
-				BindingList<FileObj> list = null;// = new BindingList<FileObj>();
-				if (bindingSource.Count == 0)
-				{
-					list = new BindingList<FileObj>();
-					bindingSource.DataSource = list;
-				}
-
-				list = (BindingList<FileObj>)bindingSource.DataSource;
-				list.Add(file);
-				//*/
-				/**/
-				//bindingSource.Add(file);
-				//*/
+				((BindingList<FileObj>)bindingSource.DataSource).Add(file);
 			}
 			catch(Exception e)
 			{
@@ -131,9 +104,45 @@ namespace CustomPropertiesEditor
 		}
 		/////
 
-		internal static HelperResult processModel(SldWorks swApp,FileObj file, BindingList<PropertyObject> prop_list, PropProcessFlag flag)
+		internal static HelperResult processModel(SldWorks swApp,FileObj file, BindingList<PropertyObject> prop_list, PropProcessFlag flag, CancellationToken cancellationToken)
 		{
+			int Warning = 0;
+			int Error = 0;
 
+			try
+			{
+				if(cancellationToken.IsCancellationRequested)
+				{
+					return HelperResult.CANCELED;
+				}
+
+				if(file.Read_only)
+				{
+					file.Note = "Skiped becaus file is Read only!";
+					return HelperResult.SKIPED;
+				}
+
+				ModelDoc2 swDoc = swApp.OpenDoc6(file.PathToFile, (int)file.SwType_e, (int)swOpenDocOptions_e.swOpenDocOptions_Silent, "", ref Error, ref Warning);
+
+				if (Error != 0 || swDoc == null)
+				{
+					file.Note = "Error to open file";
+					return HelperResult.OPEN_ERROR;
+				}
+
+				file.ConfigNames.AddRange(swDoc.GetConfigurationNames());
+				if (!file.ConfigNames.Any())
+					return HelperResult.UNKNOWN;
+
+
+
+				throw new NotImplementedException();
+			}
+			catch (Exception e)
+			{
+
+				throw e;
+			}
 			return HelperResult.SUCCESS;
 		}
 		

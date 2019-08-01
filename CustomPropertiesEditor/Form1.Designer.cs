@@ -40,6 +40,9 @@
 			this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+			this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
+			this.toolStripStatusLabel_time = new System.Windows.Forms.ToolStripStatusLabel();
+			this.toolStripStatusLabel_status = new System.Windows.Forms.ToolStripStatusLabel();
 			this.dataGridView_swSettings = new System.Windows.Forms.DataGridView();
 			this.bindingSource_swSettings = new System.Windows.Forms.BindingSource(this.components);
 			this.dataGridView_swFolder = new System.Windows.Forms.DataGridView();
@@ -49,6 +52,7 @@
 			this.button_cancel = new System.Windows.Forms.Button();
 			this.button_start = new System.Windows.Forms.Button();
 			this.menuStrip1.SuspendLayout();
+			this.statusStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.dataGridView_swSettings)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.bindingSource_swSettings)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.dataGridView_swFolder)).BeginInit();
@@ -137,18 +141,41 @@
 			this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
 			this.aboutToolStripMenuItem.Size = new System.Drawing.Size(146, 30);
 			this.aboutToolStripMenuItem.Text = "About";
+			this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
 			// 
 			// statusStrip1
 			// 
 			this.statusStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
-			this.statusStrip1.Location = new System.Drawing.Point(0, 637);
+			this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripProgressBar1,
+            this.toolStripStatusLabel_time,
+            this.toolStripStatusLabel_status});
+			this.statusStrip1.Location = new System.Drawing.Point(0, 629);
 			this.statusStrip1.Name = "statusStrip1";
-			this.statusStrip1.Size = new System.Drawing.Size(1079, 22);
+			this.statusStrip1.Size = new System.Drawing.Size(1079, 30);
 			this.statusStrip1.TabIndex = 1;
 			this.statusStrip1.Text = "statusStrip1";
 			// 
+			// toolStripProgressBar1
+			// 
+			this.toolStripProgressBar1.Name = "toolStripProgressBar1";
+			this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 24);
+			// 
+			// toolStripStatusLabel_time
+			// 
+			this.toolStripStatusLabel_time.Name = "toolStripStatusLabel_time";
+			this.toolStripStatusLabel_time.Size = new System.Drawing.Size(80, 25);
+			this.toolStripStatusLabel_time.Text = "00:00:00";
+			// 
+			// toolStripStatusLabel_status
+			// 
+			this.toolStripStatusLabel_status.Name = "toolStripStatusLabel_status";
+			this.toolStripStatusLabel_status.Size = new System.Drawing.Size(65, 25);
+			this.toolStripStatusLabel_status.Text = "Ready!";
+			// 
 			// dataGridView_swSettings
 			// 
+			this.dataGridView_swSettings.AllowUserToResizeRows = false;
 			this.dataGridView_swSettings.AutoGenerateColumns = false;
 			this.dataGridView_swSettings.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 			this.dataGridView_swSettings.DataSource = this.bindingSource_swSettings;
@@ -159,13 +186,14 @@
 			this.dataGridView_swSettings.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
 			this.dataGridView_swSettings.RowTemplate.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
 			this.dataGridView_swSettings.RowTemplate.Height = 23;
-			this.dataGridView_swSettings.Size = new System.Drawing.Size(540, 538);
+			this.dataGridView_swSettings.Size = new System.Drawing.Size(540, 530);
 			this.dataGridView_swSettings.TabIndex = 0;
 			// 
 			// dataGridView_swFolder
 			// 
 			this.dataGridView_swFolder.AllowDrop = true;
 			this.dataGridView_swFolder.AllowUserToAddRows = false;
+			this.dataGridView_swFolder.AllowUserToResizeRows = false;
 			this.dataGridView_swFolder.AutoGenerateColumns = false;
 			this.dataGridView_swFolder.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 			this.dataGridView_swFolder.DataSource = this.bindingSource_swFolder;
@@ -174,7 +202,7 @@
 			this.dataGridView_swFolder.Name = "dataGridView_swFolder";
 			this.dataGridView_swFolder.ReadOnly = true;
 			this.dataGridView_swFolder.RowTemplate.Height = 28;
-			this.dataGridView_swFolder.Size = new System.Drawing.Size(529, 538);
+			this.dataGridView_swFolder.Size = new System.Drawing.Size(529, 530);
 			this.dataGridView_swFolder.TabIndex = 1;
 			this.dataGridView_swFolder.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridView_swFolder_CellFormatting);
 			this.dataGridView_swFolder.DragDrop += new System.Windows.Forms.DragEventHandler(this.dataGridView_swFolder_DragDrop);
@@ -189,12 +217,15 @@
 			// 
 			// splitContainer1.Panel1
 			// 
+			this.splitContainer1.Panel1.AutoScroll = true;
 			this.splitContainer1.Panel1.Controls.Add(this.dataGridView_swSettings);
+			this.splitContainer1.Panel1MinSize = 100;
 			// 
 			// splitContainer1.Panel2
 			// 
 			this.splitContainer1.Panel2.Controls.Add(this.dataGridView_swFolder);
-			this.splitContainer1.Size = new System.Drawing.Size(1073, 538);
+			this.splitContainer1.Panel2MinSize = 100;
+			this.splitContainer1.Size = new System.Drawing.Size(1073, 530);
 			this.splitContainer1.SplitterDistance = 540;
 			this.splitContainer1.TabIndex = 3;
 			// 
@@ -214,28 +245,30 @@
 			this.tableLayoutPanel1.RowCount = 2;
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
-			this.tableLayoutPanel1.Size = new System.Drawing.Size(1079, 604);
+			this.tableLayoutPanel1.Size = new System.Drawing.Size(1079, 596);
 			this.tableLayoutPanel1.TabIndex = 4;
 			// 
 			// button_cancel
 			// 
 			this.button_cancel.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.button_cancel.Location = new System.Drawing.Point(931, 547);
+			this.button_cancel.Location = new System.Drawing.Point(931, 539);
 			this.button_cancel.Name = "button_cancel";
 			this.button_cancel.Size = new System.Drawing.Size(145, 54);
 			this.button_cancel.TabIndex = 4;
 			this.button_cancel.Text = "Cancel";
 			this.button_cancel.UseVisualStyleBackColor = true;
+			this.button_cancel.Click += new System.EventHandler(this.button_cancel_Click);
 			// 
 			// button_start
 			// 
 			this.button_start.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.button_start.Location = new System.Drawing.Point(781, 547);
+			this.button_start.Location = new System.Drawing.Point(781, 539);
 			this.button_start.Name = "button_start";
 			this.button_start.Size = new System.Drawing.Size(144, 54);
 			this.button_start.TabIndex = 5;
 			this.button_start.Text = "Start";
 			this.button_start.UseVisualStyleBackColor = true;
+			this.button_start.Click += new System.EventHandler(this.button_start_Click);
 			// 
 			// Form1
 			// 
@@ -252,6 +285,8 @@
 			this.Load += new System.EventHandler(this.Form1_Load);
 			this.menuStrip1.ResumeLayout(false);
 			this.menuStrip1.PerformLayout();
+			this.statusStrip1.ResumeLayout(false);
+			this.statusStrip1.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.dataGridView_swSettings)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.bindingSource_swSettings)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.dataGridView_swFolder)).EndInit();
@@ -287,6 +322,9 @@
 		private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
 		private System.Windows.Forms.Button button_cancel;
 		private System.Windows.Forms.Button button_start;
+		private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
+		private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_time;
+		private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_status;
 	}
 }
 

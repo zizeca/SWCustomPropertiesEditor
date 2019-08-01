@@ -19,12 +19,16 @@ namespace CustomPropertiesEditor
         {
             InitializeComponent();
         }
-		public SldWorks swApp;
+
+		//variables
+		//
+		public SldWorks swApp = null;
 
 		
 		private void Form1_Load(object sender, EventArgs e)
 		{
 			bindingSource_swSettings.DataSource = new BindingList<PropertyObject>();
+			bindingSource_swFolder.DataSource = new BindingList<FileObj>();
 			//bindingSource_swSettings.AddingNew = new PropertyObject();
 
 			DataGridViewColumn column; // = new DataGridViewTextBoxColumn();
@@ -79,11 +83,15 @@ namespace CustomPropertiesEditor
 
 			//bindingSource_swSettings.DataSource = list;
 			//*/
-	
 
+			setEnableUiTools(true);
+
+			
 
 		}
 
+		//non ui methods
+		//
 		private DataGridViewComboBoxColumn CreateComboBoxWithEnums()
 		{
 			DataGridViewComboBoxColumn combo = new DataGridViewComboBoxColumn();
@@ -107,7 +115,28 @@ namespace CustomPropertiesEditor
 			return combo;
 		}
 
+		private void setEnableUiTools(bool enable)
+		{
+			addFileToolStripMenuItem.Enabled =  enable;
+			addFolderToolStripMenuItem.Enabled = enable;
+			openPropertiesToolStripMenuItem.Enabled = enable;
+			savePropertiesToolStripMenuItem.Enabled = enable;
+			savePropertiesAsToolStripMenuItem.Enabled = enable;
 
+			
+			dataGridView_swSettings.ReadOnly = !enable;
+			dataGridView_swSettings.AllowUserToAddRows = enable;
+			dataGridView_swSettings.AllowUserToDeleteRows = enable;
+			dataGridView_swFolder.AllowDrop = enable;
+			dataGridView_swFolder.AllowUserToDeleteRows = enable;
+
+
+			button_start.Enabled = enable;
+			button_cancel.Enabled = !enable;
+		}
+
+
+		//form methods
 		private void addFolderToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			FolderBrowserDialog dialog = new FolderBrowserDialog();
@@ -350,6 +379,59 @@ namespace CustomPropertiesEditor
 
 				// Your desired code goes here to process the file(s) being dropped
 			}
+		}
+
+		private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			AboutBox1 box = new AboutBox1();
+			this.Enabled = false;
+			box.Owner = this;
+			box.Show();
+		}
+
+		private async void button_start_Click(object sender, EventArgs e)
+		{
+			setEnableUiTools(false);
+
+			//check tables
+			if (bindingSource_swSettings.Count == 0)
+			{
+				MessageBox.Show("Setting table is empty!\n Please add settings before you press start");
+				setEnableUiTools(true);
+				return;
+			}
+			if (bindingSource_swFolder.Count == 0)
+			{
+				MessageBox.Show("File table is empty!\n Please add file before you press start");
+				setEnableUiTools(true);
+				return;
+			}
+
+			BindingList<FileObj> list = (BindingList<FileObj>)bindingSource_swFolder.DataSource;
+			
+			if(list.Count == 0)
+			{
+				MessageBox.Show("Fail to read from table!");
+				return;
+			}
+			
+			toolStripProgressBar1.Maximum = list.Count;
+			if (swApp == null)
+				toolStripStatusLabel_status.Text = "Lunch SolidWorks...";
+			swApp = await SolidworksSingleton.GetSwAppAsync();
+			//swApp.Visible = false;
+			if(swApp == null)
+				MessageBox.Show("Fail to start Solid Works");
+			else
+				toolStripStatusLabel_status.Text = "SolidWorks started!";
+			//run process method
+
+			setEnableUiTools(true);
+		}
+
+		private void button_cancel_Click(object sender, EventArgs e)
+		{
+			setEnableUiTools(true);
 		}
 	}
 }
