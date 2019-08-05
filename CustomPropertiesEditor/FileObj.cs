@@ -22,9 +22,12 @@ namespace CustomPropertiesEditor
 		private List<string> _configNames;
 
 
-		public FileObj() { }
+		public FileObj() {
+			_configNames = new List<string>();
+		}
 		public FileObj(string pathToFile)
 		{
+			_configNames = new List<string>();
 			this.PathToFile = pathToFile;
 		}
 

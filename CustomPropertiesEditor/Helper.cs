@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.IO;
-using System.ComponentModel;
-using SolidWorks.Interop.sldworks;
+﻿using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using System;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Threading;
+using System.Windows.Forms;
 
 namespace CustomPropertiesEditor
 {
@@ -36,12 +33,10 @@ namespace CustomPropertiesEditor
 			ALL = MAIN_CUSTOM | CONFIG_CUSTOM
 		}
 
-
-
 		//////add files to DataGridView;
 		internal static HelperResult AddFolder(BindingSource bindingSource, string path)
 		{
-			if(!Directory.Exists(path))
+			if (!Directory.Exists(path))
 			{
 				return HelperResult.NOT_EXIST;
 			}
@@ -49,7 +44,7 @@ namespace CustomPropertiesEditor
 			string[] files = Directory.GetFiles(path);
 
 			HelperResult err = HelperResult.UNKNOWN;
-			if(!files.Any())
+			if (!files.Any())
 			{
 				return HelperResult.NO_FILES;
 			}
@@ -61,18 +56,17 @@ namespace CustomPropertiesEditor
 
 		internal static HelperResult AddFiles(BindingSource bindingSource, string[] pathes)
 		{
-			if(!pathes.Any())
+			if (!pathes.Any())
 			{
 				return HelperResult.WRONG_ARG;
 			}
 
-
 			foreach (var item in pathes)
 			{
-				AddFile(bindingSource,item);
+				AddFile(bindingSource, item);
 			}
 
-			if(bindingSource.Count == 0)
+			if (bindingSource.Count == 0)
 			{
 				return HelperResult.NO_FILES;
 			}
@@ -82,7 +76,6 @@ namespace CustomPropertiesEditor
 
 		internal static HelperResult AddFile(BindingSource bindingSource, string path)
 		{
-
 			if (!File.Exists(path))
 				return HelperResult.NOT_EXIST;
 
@@ -95,30 +88,34 @@ namespace CustomPropertiesEditor
 			{
 				((BindingList<FileObj>)bindingSource.DataSource).Add(file);
 			}
-			catch(Exception e)
+			catch (Exception e)
 			{
 				MessageBox.Show(e.Message);
 			}
-			
+
 			return HelperResult.SUCCESS;
 		}
+
 		/////
 
-		internal static HelperResult processModel(SldWorks swApp,FileObj file, BindingList<PropertyObject> prop_list, PropProcessFlag flag, CancellationToken cancellationToken)
+		internal static HelperResult processModel(SldWorks swApp, FileObj file, BindingList<PropertyObject> prop_list, PropProcessFlag flag, CancellationToken cancellationToken)
 		{
+			Console.WriteLine("Helper.processModel");
+
 			int Warning = 0;
 			int Error = 0;
 
 			try
 			{
-				if(cancellationToken.IsCancellationRequested)
+				if (cancellationToken.IsCancellationRequested)
 				{
+					file.Note = "Cancel";
 					return HelperResult.CANCELED;
 				}
 
-				if(file.Read_only)
+				if (file.Read_only)
 				{
-					file.Note = "Skiped becaus file is Read only!";
+					file.Note = "Skiped (Read only!)";
 					return HelperResult.SKIPED;
 				}
 
@@ -130,21 +127,81 @@ namespace CustomPropertiesEditor
 					return HelperResult.OPEN_ERROR;
 				}
 
-				file.ConfigNames.AddRange(swDoc.GetConfigurationNames());
-				if (!file.ConfigNames.Any())
-					return HelperResult.UNKNOWN;
+				//*  //this code error
+				if (file.SwType_e == swDocumentTypes_e.swDocASSEMBLY || file.SwType_e == swDocumentTypes_e.swDocPART)
+				{
+					file.ConfigNames.AddRange(swDoc.GetConfigurationNames());
+					if (!file.ConfigNames.Any())
+					{
+						swApp.QuitDoc(swDoc.GetTitle());
+						swDoc = null;
+						file.Note = "Skiped (Unknown error)";
+						return HelperResult.UNKNOWN;
+					}
+				}
 
+				//*/
 
+				if ((flag & PropProcessFlag.MAIN_CUSTOM) == PropProcessFlag.MAIN_CUSTOM)
+				{
+					try
+					{
+						CustomPropertyManager manager = swDoc.Extension.CustomPropertyManager[""];
+						foreach (PropertyObject property in prop_list)
+						{
+							Console.WriteLine("field={0},type={1},value={2}", property.FieldName, property.FieldType, property.Value);
+							int ret = manager.Add3(property.FieldName, (int)property.FieldType, property.Value, (int)swCustomPropertyAddOption_e.swCustomPropertyReplaceValue);
+							if (ret != 0)
+								file.Note = "Error to add, err num = " + ret;
+						}
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine("error in add method" + ex.Message);
+						file.Note = "error(" + ex.Message + ")";
+						//throw ex;
+					}
+				}
 
-				throw new NotImplementedException();
+				if ( ((flag & PropProcessFlag.CONFIG_CUSTOM) == PropProcessFlag.CONFIG_CUSTOM) && file.ConfigNames.Any())
+				{
+					try
+					{
+						foreach (string conf in file.ConfigNames)
+						{
+							Console.WriteLine(conf);
+							CustomPropertyManager manager = swDoc.Extension.CustomPropertyManager[conf];
+							foreach (PropertyObject property in prop_list)
+							{
+								Console.WriteLine("field={0},type={1},value={2},config{3}", property.FieldName, property.FieldType, property.Value,conf);
+								int ret = manager.Add3(property.FieldName, (int)property.FieldType, property.Value, (int)swCustomPropertyAddOption_e.swCustomPropertyReplaceValue);
+								if (ret != 0)
+								{
+									file.Note = "Error to add, err num = " + ret;
+									break;
+								}
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine("error in add method" + ex.Message);
+						file.Note = "error(" + ex.Message + ")";
+						//throw ex;
+					}
+				}
+
+				file.Note = "Done";
+				swDoc.SaveSilent();
+				swApp.QuitDoc(swDoc.GetTitle());
+				swDoc = null;
 			}
 			catch (Exception e)
 			{
-
+				Console.WriteLine(e.Message);
 				throw e;
 			}
 			return HelperResult.SUCCESS;
 		}
-		
 	}
 }

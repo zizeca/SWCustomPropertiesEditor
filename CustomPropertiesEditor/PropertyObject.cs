@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SolidWorks.Interop.swconst;
 
 namespace CustomPropertiesEditor
 {
 	public enum TypeData
 	{
 		Text,
-		Bool,
+		YesOrNo,
 		Date,
 		Num
 	}
@@ -17,28 +18,28 @@ namespace CustomPropertiesEditor
 	class PropertyObject
 	{
 
-		private string _PropertyName ;
+		private string _fieldName ;
 		private TypeData _Type_Data ;
 		private string _Value;
 
 
 		public PropertyObject()
 		{
-			_PropertyName = "";
+			_fieldName = "";
 			_Type_Data = TypeData.Text;
 			_Value = "";
 
 		}
 
-		public string PropertyName
+		public string FieldName
 		{
 			get
 			{
-				return _PropertyName;
+				return _fieldName;
 			}
 			set
 			{
-				_PropertyName = value;
+				_fieldName = value;
 			}
 		 }
 		public TypeData Type_Data
@@ -63,5 +64,23 @@ namespace CustomPropertiesEditor
 				_Value = value;
 			}
 		}
+
+		public swCustomInfoType_e FieldType
+		{
+			get
+			{
+				if (Type_Data == TypeData.Text)
+					return swCustomInfoType_e.swCustomInfoText;
+				if (Type_Data == TypeData.YesOrNo)
+					return swCustomInfoType_e.swCustomInfoYesOrNo;
+				if (Type_Data == TypeData.Date)
+					return swCustomInfoType_e.swCustomInfoDate;
+				if (Type_Data == TypeData.Num)
+					return swCustomInfoType_e.swCustomInfoNumber;
+
+				return swCustomInfoType_e.swCustomInfoUnknown;
+			}
+		}
+
 	}
 }

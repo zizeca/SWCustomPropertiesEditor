@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
@@ -23,8 +25,9 @@ namespace CustomPropertiesEditor
 		//variables
 		//
 		public SldWorks swApp = null;
+		private Helper.PropProcessFlag propProcessFlag = Helper.PropProcessFlag.ALL;
+		private string pathToSettings = "";
 
-		
 		private void Form1_Load(object sender, EventArgs e)
 		{
 			bindingSource_swSettings.DataSource = new BindingList<PropertyObject>();
@@ -59,7 +62,7 @@ namespace CustomPropertiesEditor
 			dataGridView_swSettings.AutoSize = false;
 			//column propertiName
 			column = new DataGridViewTextBoxColumn();
-			column.DataPropertyName = "PropertyName";
+			column.DataPropertyName = "FieldName";
 			column.Name = "Property name";
 			column.ToolTipText = "Property for add to files";
 			column.MinimumWidth = 100;
@@ -117,6 +120,7 @@ namespace CustomPropertiesEditor
 
 		private void setEnableUiTools(bool enable)
 		{
+			//*
 			addFileToolStripMenuItem.Enabled =  enable;
 			addFolderToolStripMenuItem.Enabled = enable;
 			openPropertiesToolStripMenuItem.Enabled = enable;
@@ -133,98 +137,26 @@ namespace CustomPropertiesEditor
 
 			button_start.Enabled = enable;
 			button_cancel.Enabled = !enable;
+			//*/
+			//button_cancel.Enabled = true;
 		}
 
-
-		//form methods
-		private void addFolderToolStripMenuItem_Click(object sender, EventArgs e)
+		//task manip
+		private Task<Helper.HelperResult> processModelAsyncTask = null;
+		CancellationTokenSource cancelSource = null;
+		private Task<Helper.HelperResult> ProcessModelAsync(CancellationToken token, FileObj file)
 		{
-			FolderBrowserDialog dialog = new FolderBrowserDialog();
-			
-			DialogResult result = dialog.ShowDialog();
-			if(result == DialogResult.OK)
-			{
-				string folder = dialog.SelectedPath;
-				Helper.HelperResult err = Helper.AddFolder(bindingSource_swFolder, folder);
-				if(err!= Helper.HelperResult.SUCCESS)
-				{
-					MessageBox.Show("Wrong folder");
-				}
-
-			}
+			return Task<Helper.HelperResult>.Run(() => {
+				return Helper.processModel(swApp, file, ((BindingList<PropertyObject>)bindingSource_swSettings.DataSource), propProcessFlag, token);
+			});
 		}
 
-		private void dataGridView_swFolder_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+		//help meth
+		private void writeSettingsToXml(string path)
 		{
-			if ((e.ColumnIndex == this.dataGridView_swFolder.Columns["Name"].Index) && e.Value != null)
-			{
-				DataGridViewCell cell = this.dataGridView_swFolder.Rows[e.RowIndex].Cells[e.ColumnIndex];
-				cell.ToolTipText = ((FileObj)(dataGridView_swFolder.Rows[e.RowIndex].DataBoundItem)).PathToFile;
-			}
-		}
-
-		private void addFileToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-
-			OpenFileDialog dialog = new OpenFileDialog();
-
-			if(swApp != null)
-				dialog.InitialDirectory = swApp.GetCurrentWorkingDirectory();
-			
-			dialog.Filter = "Solidworks (*.sldprt;*.sldasm;*.slddrw)|*.sldprt;*.sldasm;*.slddrw|Parts (*.sldprt)|*.sldprt|Assemblies (*.sldasm)|*.sldasm|Drawings (*.slddrw)|*.slddrw|All files (*.*)|*.*";
-			dialog.Multiselect = true;
-
-
-			DialogResult result = dialog.ShowDialog();
-			if (result == DialogResult.OK)
-			{
-				Helper.HelperResult err = Helper.HelperResult.UNKNOWN;
-
-				string[] files = dialog.FileNames;
-				if (files.Any())
-					err = Helper.AddFiles(bindingSource_swFolder, files);
-
-				//if (!String.IsNullOrEmpty(file))
-				//err = Helper.AddFile(bindingSource_swFolder, file);
-
-				switch (err)
-				{
-					case Helper.HelperResult.SUCCESS:
-						break;
-					case Helper.HelperResult.UNKNOWN:
-						MessageBox.Show("Unknown error");
-						break;
-					case Helper.HelperResult.NO_FILES:
-						MessageBox.Show("No cad data");
-						break;
-					default:
-						MessageBox.Show("Unknown error");
-						break;
-				}
-			}
-		}
-
-		private void savePropertiesAsToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			SaveFileDialog sfd = new SaveFileDialog();
-			sfd.Filter = "XML|*.xml";
-			if(bindingSource_swSettings.Count == 0)
-			{
-				Console.WriteLine("data binding is empty");
-			}
-
 			DataTable dt = new DataTable();
 
 			dt.TableName = "settings";
-
-			/*
-			for (int i = 0; i < dataGridView_swSettings.Columns.Count; i++)
-			{
-				DataColumn c = new DataColumn();
-				c.ColumnName = dataGridView_swSettings.Columns[i].HeaderText;
-				dt.Columns.Add(c);
-			}
-			//*/
 
 			dt.Columns.Add("property");
 			dt.Columns.Add("type");
@@ -242,91 +174,18 @@ namespace CustomPropertiesEditor
 				}
 			}
 
-
-
-
-
-			if (sfd.ShowDialog() == DialogResult.OK)
-			{
-				try
-				{
-					dt.WriteXml(sfd.FileName);
-
-				}
-				catch(Exception ex)
-				{
-					throw ex;
-				}
-			}
-
-
-			
-
+			dt.WriteXml(path);
+			pathToSettings = path;
 		}
 
-		private void openPropertiesToolStripMenuItem_Click(object sender, EventArgs e)
+		//form methods
+		private void dataGridView_swFolder_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
 		{
-			OpenFileDialog dialog = new OpenFileDialog();
-			dialog.Filter = "XML|*.xml";
-			dialog.Multiselect = false;
-
-			XmlDocument doc = new XmlDocument();
-
-			BindingList<PropertyObject> list = new BindingList<PropertyObject>();
-
-			if (dialog.ShowDialog() != DialogResult.OK)
+			if ((e.ColumnIndex == this.dataGridView_swFolder.Columns["Name"].Index) && e.Value != null)
 			{
-				return;
+				DataGridViewCell cell = this.dataGridView_swFolder.Rows[e.RowIndex].Cells[e.ColumnIndex];
+				cell.ToolTipText = ((FileObj)(dataGridView_swFolder.Rows[e.RowIndex].DataBoundItem)).PathToFile;
 			}
-			
-			doc.Load(dialog.FileName);
-			Console.WriteLine("Loaded xml");
-
-			XmlElement el = doc.DocumentElement;
-
-			Console.WriteLine("elem:" + el.Name);
-
-			XmlNodeList elemList = doc.GetElementsByTagName("settings");
-
-			if(elemList.Count == 0)
-			{
-				return;
-			}
-
-			for (int i = 0; i < elemList.Count; i++)
-			{
-				PropertyObject obj = new PropertyObject();
-
-				if (!elemList[i].HasChildNodes) continue;
-				obj.PropertyName =  elemList[i].ChildNodes[0].InnerText;
-				if (string.IsNullOrEmpty(obj.PropertyName)) continue;
-
-				if (elemList[i].ChildNodes[1].InnerText.ToLower() == "bool")
-				{
-					obj.Type_Data = TypeData.Bool;
-				}
-				else if (elemList[i].ChildNodes[1].InnerText.ToLower() == "date")
-				{
-					obj.Type_Data = TypeData.Date;
-				}
-				else if (elemList[i].ChildNodes[1].InnerText.ToLower() == "num")
-				{
-					obj.Type_Data = TypeData.Num;
-				}
-				else
-				{
-					obj.Type_Data = TypeData.Text;
-				}
-
-				obj.Value = elemList[i].ChildNodes[2].InnerText;
-
-				list.Add(obj);
-
-				
-			}
-
-			bindingSource_swSettings.DataSource = list;
-
 		}
 
 		private void dataGridView_swFolder_DragEnter(object sender, DragEventArgs e)
@@ -381,6 +240,189 @@ namespace CustomPropertiesEditor
 			}
 		}
 
+		//files table
+		private void addFolderToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			FolderBrowserDialog dialog = new FolderBrowserDialog();
+			
+			DialogResult result = dialog.ShowDialog();
+			if(result == DialogResult.OK)
+			{
+				string folder = dialog.SelectedPath;
+				Helper.HelperResult err = Helper.AddFolder(bindingSource_swFolder, folder);
+				if(err!= Helper.HelperResult.SUCCESS)
+				{
+					MessageBox.Show("Wrong folder");
+				}
+
+			}
+		}
+
+		private void addFileToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+
+			OpenFileDialog dialog = new OpenFileDialog();
+
+			if(swApp != null)
+				dialog.InitialDirectory = swApp.GetCurrentWorkingDirectory();
+			
+			dialog.Filter = "Solidworks (*.sldprt;*.sldasm;*.slddrw)|*.sldprt;*.sldasm;*.slddrw|Parts (*.sldprt)|*.sldprt|Assemblies (*.sldasm)|*.sldasm|Drawings (*.slddrw)|*.slddrw|All files (*.*)|*.*";
+			dialog.Multiselect = true;
+
+
+			DialogResult result = dialog.ShowDialog();
+			if (result == DialogResult.OK)
+			{
+				Helper.HelperResult err = Helper.HelperResult.UNKNOWN;
+
+				string[] files = dialog.FileNames;
+				if (files.Any())
+					err = Helper.AddFiles(bindingSource_swFolder, files);
+
+				//if (!String.IsNullOrEmpty(file))
+				//err = Helper.AddFile(bindingSource_swFolder, file);
+
+				switch (err)
+				{
+					case Helper.HelperResult.SUCCESS:
+						break;
+					case Helper.HelperResult.UNKNOWN:
+						MessageBox.Show("Unknown error");
+						break;
+					case Helper.HelperResult.NO_FILES:
+						MessageBox.Show("No cad data");
+						break;
+					default:
+						MessageBox.Show("Unknown error");
+						break;
+				}
+			}
+		}
+
+		//settings table
+		private void openPropertiesToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			OpenFileDialog dialog = new OpenFileDialog();
+			dialog.Filter = "XML|*.xml";
+			dialog.Multiselect = false;
+
+			XmlDocument doc = new XmlDocument();
+
+			BindingList<PropertyObject> list = new BindingList<PropertyObject>();
+
+			if (dialog.ShowDialog() != DialogResult.OK)
+			{
+				return;
+			}
+
+			pathToSettings = dialog.FileName;
+			doc.Load(pathToSettings);
+			Console.WriteLine("Loaded xml");
+
+			XmlElement el = doc.DocumentElement;
+
+			Console.WriteLine("elem:" + el.Name);
+
+			XmlNodeList elemList = doc.GetElementsByTagName("settings");
+
+			if(elemList.Count == 0)
+			{
+				return;
+			}
+
+			for (int i = 0; i < elemList.Count; i++)
+			{
+				PropertyObject obj = new PropertyObject();
+
+				if (!elemList[i].HasChildNodes) continue;
+				obj.FieldName =  elemList[i].ChildNodes[0].InnerText;
+				if (string.IsNullOrEmpty(obj.FieldName)) continue;
+
+				if (elemList[i].ChildNodes[1].InnerText.ToLower() == "bool")
+				{
+					obj.Type_Data = TypeData.YesOrNo;
+				}
+				else if (elemList[i].ChildNodes[1].InnerText.ToLower() == "date")
+				{
+					obj.Type_Data = TypeData.Date;
+				}
+				else if (elemList[i].ChildNodes[1].InnerText.ToLower() == "num")
+				{
+					obj.Type_Data = TypeData.Num;
+				}
+				else
+				{
+					obj.Type_Data = TypeData.Text;
+				}
+
+				obj.Value = elemList[i].ChildNodes[2].InnerText;
+
+				list.Add(obj);
+
+				
+			}
+
+			bindingSource_swSettings.DataSource = list;
+
+		}
+
+		private void savePropertiesToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+
+			if (!((BindingList<PropertyObject>)bindingSource_swSettings.DataSource).Any())
+			{
+				MessageBox.Show("Table settings is empty");
+				return;
+			}
+
+
+			if (string.IsNullOrEmpty(pathToSettings) || !File.Exists(pathToSettings) )
+				savePropertiesAsToolStripMenuItem_Click(sender, e);
+			else
+			{
+				try
+				{
+					writeSettingsToXml(pathToSettings);	
+				}
+				catch (Exception ex)
+				{
+					throw ex;
+				}
+			}
+			
+
+		}
+
+		private void savePropertiesAsToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+
+			if ( !((BindingList<PropertyObject>)bindingSource_swSettings.DataSource).Any())
+			{
+				MessageBox.Show("Table settings is empty");
+				return;
+			}
+
+			SaveFileDialog sfd = new SaveFileDialog();
+			sfd.Filter = "XML|*.xml";
+			if(bindingSource_swSettings.Count == 0)
+			{
+				Console.WriteLine("data binding is empty");
+			}
+
+			if (sfd.ShowDialog() == DialogResult.OK)
+			{
+				try
+				{
+					writeSettingsToXml(sfd.FileName);
+				}
+				catch(Exception ex)
+				{
+					throw ex;
+				}
+			}
+		}
+
+		//misc
 		private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			AboutBox1 box = new AboutBox1();
@@ -389,9 +431,18 @@ namespace CustomPropertiesEditor
 			box.Show();
 		}
 
+		//buttons
 		private async void button_start_Click(object sender, EventArgs e)
 		{
 			setEnableUiTools(false);
+
+			if (radioButton_conf.Checked)
+				propProcessFlag = Helper.PropProcessFlag.CONFIG_CUSTOM;
+			else if (radioButton_main.Checked)
+				propProcessFlag = Helper.PropProcessFlag.MAIN_CUSTOM;
+			else
+				propProcessFlag = Helper.PropProcessFlag.ALL;
+
 
 			//check tables
 			if (bindingSource_swSettings.Count == 0)
@@ -407,15 +458,15 @@ namespace CustomPropertiesEditor
 				return;
 			}
 
-			BindingList<FileObj> list = (BindingList<FileObj>)bindingSource_swFolder.DataSource;
+			BindingList<FileObj> fileList = (BindingList<FileObj>)bindingSource_swFolder.DataSource;
 			
-			if(list.Count == 0)
+			if(fileList.Count == 0)
 			{
 				MessageBox.Show("Fail to read from table!");
 				return;
 			}
 			
-			toolStripProgressBar1.Maximum = list.Count;
+			
 			if (swApp == null)
 				toolStripStatusLabel_status.Text = "Lunch SolidWorks...";
 			swApp = await SolidworksSingleton.GetSwAppAsync();
@@ -424,14 +475,88 @@ namespace CustomPropertiesEditor
 				MessageBox.Show("Fail to start Solid Works");
 			else
 				toolStripStatusLabel_status.Text = "SolidWorks started!";
-			//run process method
 
+			BindingList<PropertyObject> prop_list = (BindingList<PropertyObject>)bindingSource_swSettings.DataSource;
+			if (prop_list.Count == 0)
+			{
+				MessageBox.Show("Fail to read from settings");
+				return;
+			}
+
+			toolStripProgressBar1.Maximum = fileList.Count;
+			toolStripProgressBar1.Value = 0;
+			//run process method
+			try
+			{
+
+				cancelSource = new CancellationTokenSource();
+				foreach (FileObj file in fileList)
+				{
+					
+					processModelAsyncTask = ProcessModelAsync(cancelSource.Token, file);
+					Helper.HelperResult res = await processModelAsyncTask;
+					Console.WriteLine("Res {0}",res);
+					toolStripProgressBar1.Value += 1;
+					toolStripStatusLabel_status.Text = file.Name;
+
+					//if(res == Helper.HelperResult.CANCELED)
+					//{
+					//	toolStripStatusLabel_status.Text = "Canceled";
+					//	break;
+					//}
+				}
+
+				toolStripStatusLabel_status.Text = "Done";
+			}
+			catch (Exception ex)
+			{
+
+				toolStripStatusLabel_status.Text = ex.Message;
+			}
+
+
+			processModelAsyncTask = null;
 			setEnableUiTools(true);
 		}
 
 		private void button_cancel_Click(object sender, EventArgs e)
 		{
-			setEnableUiTools(true);
+			if(processModelAsyncTask!= null)
+			{
+				switch (processModelAsyncTask.Status)
+				{
+					case TaskStatus.Created:
+						break;
+					case TaskStatus.WaitingForActivation:
+						break;
+					case TaskStatus.WaitingToRun:
+						break;
+					case TaskStatus.Running:
+						{
+							if (cancelSource != null)
+								cancelSource.Cancel();
+						}
+						break;
+					case TaskStatus.WaitingForChildrenToComplete:
+						break;
+					case TaskStatus.RanToCompletion:
+						break;
+					case TaskStatus.Canceled:
+						break;
+					case TaskStatus.Faulted:
+						break;
+					default:
+						break;
+				}
+			}
+			//setEnableUiTools(true);
 		}
+
+		//event
+		private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+		{
+			SolidworksSingleton.Dispose();
+		}
+
 	}
 }
