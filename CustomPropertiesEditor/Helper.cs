@@ -21,6 +21,7 @@ namespace CustomPropertiesEditor
 			NO_FILES,
 			WRONG_ARG,
 			OPEN_ERROR,
+			SLDWORKS_NOT_RUNNING,
 			UNKNOWN_ERROR,
 			UNKNOWN
 		}
@@ -106,11 +107,11 @@ namespace CustomPropertiesEditor
 
 			
 			doc.Load(path);
-			Console.WriteLine("Loaded xml");
+			//Console.WriteLine("Loaded xml");
 
 			XmlElement el = doc.DocumentElement;
 
-			Console.WriteLine("elem:" + el.Name);
+			//Console.WriteLine("elem:" + el.Name);
 
 			XmlNodeList elemList = doc.GetElementsByTagName("property");
 
@@ -219,10 +220,76 @@ namespace CustomPropertiesEditor
 			return HelperResult.SUCCESS;
 		}
 
+		internal static HelperResult ImportProperties(SldWorks swApp ,BindingSource bindingSource, 
+			string path, string configName="")
+		{
+			if (swApp == null)
+				return HelperResult.SLDWORKS_NOT_RUNNING;
+
+			string ext = Path.GetExtension(path);
+			swDocumentTypes_e type;
+
+			if (ext.ToLower().Contains("sldprt"))
+				type = swDocumentTypes_e.swDocPART;
+			else if (ext.ToLower().Contains("sldasm"))
+				type = swDocumentTypes_e.swDocASSEMBLY;
+			else if (ext.ToLower().Contains("slddrw") && string.IsNullOrEmpty(configName))
+				type = swDocumentTypes_e.swDocDRAWING;
+			else
+				return HelperResult.WRONG_ARG;
+
+
+			int Error = 0;
+			int Warning = 0;
+
+			ModelDoc2 doc = swApp.OpenDoc6(path, (int)type, (int)swOpenDocOptions_e.swOpenDocOptions_Silent, configName ,ref Error, ref Warning);
+
+			if (Error != 0)
+			{
+				return HelperResult.OPEN_ERROR;
+			}
+
+			CustomPropertyManager manager = doc.Extension.CustomPropertyManager[configName];
+			if(manager == null)
+				return HelperResult.OPEN_ERROR;
+
+			string[] names = manager.GetNames();
+
+			if (!names.Any())
+				return HelperResult.NOT_EXIST;
+
+			BindingList<PropertyObject> list = new BindingList<PropertyObject>();
+
+			foreach (string field in names)
+			{
+				PropertyObject obj = new PropertyObject();
+
+				obj.FieldName = field;
+				int ret = manager.Get6(field, true, out string ValOut, out string ResolvedValOut, out bool WasResolved, out bool LinkToProperty);
+
+				if (ret == (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent)
+					continue;
+
+				obj.Value = ValOut;
+				list.Add(obj);
+			}
+
+			if (!list.Any())
+				return HelperResult.NOT_EXIST;
+
+			bindingSource.Clear();
+			bindingSource.DataSource = list;
+
+			return HelperResult.SUCCESS;
+		}
+
 		/////
 
 		internal static HelperResult processModel(SldWorks swApp, FileObj file, BindingList<PropertyObject> prop_list, PropProcessFlag flag, CancellationToken cancellationToken)
 		{
+			if (swApp == null)
+				return HelperResult.SLDWORKS_NOT_RUNNING;
+
 			Console.WriteLine("Helper.processModel");
 
 			int Warning = 0;

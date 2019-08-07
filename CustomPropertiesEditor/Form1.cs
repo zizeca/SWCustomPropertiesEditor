@@ -509,7 +509,55 @@ namespace CustomPropertiesEditor
 			Properties.Settings.Default.Save();
 		}
 
-		 
+		private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			this.Close();
+		}
 
+		private async void importItem_main_Click(object sender, EventArgs e)
+		{
+			OpenFileDialog dialog = new OpenFileDialog();
+			dialog.Multiselect = false;
+
+			if(dialog.ShowDialog() != DialogResult.OK)
+			{
+				return;
+			}
+
+			string path = dialog.FileName;
+			if(!File.Exists(path))
+			{
+				return;
+			}
+			
+
+			if (swApp == null)
+				toolStripStatusLabel_status.Text = "Lunch SolidWorks. Please wait";
+			swApp = await SolidworksSingleton.GetSwAppAsync();
+
+			Helper.HelperResult res = Helper.ImportProperties(swApp, bindingSource_swSettings, path);
+			if (res != Helper.HelperResult.SUCCESS)
+				toolStripStatusLabel_status.Text = "Fail to import";
+			else
+				toolStripStatusLabel_status.Text = "Ready!";
+
+			//throw new NotImplementedException();
+		}
+
+		private void importItem_config_Click(object sender, EventArgs e)
+		{
+			throw new NotImplementedException();
+		}
+
+		private void clearItem_filesTable_Click(object sender, EventArgs e)
+		{
+			((BindingList<FileObj>)bindingSource_swFolder.DataSource).Clear();
+		}
+
+		private void clearItem_settingsTable_Click(object sender, EventArgs e)
+		{
+			((BindingList<PropertyObject>)bindingSource_swSettings.DataSource).Clear();
+			pathToSettings = "";
+		}
 	}
 }
