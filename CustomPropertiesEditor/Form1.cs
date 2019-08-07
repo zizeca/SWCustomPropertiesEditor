@@ -89,7 +89,21 @@ namespace CustomPropertiesEditor
 
 			setEnableUiTools(true);
 
-			
+			pathToSettings = Properties.Settings.Default.PathToLustProperties;
+
+			if(File.Exists(pathToSettings))
+			{
+				Helper.HelperResult ret = Helper.OpenProperty(bindingSource_swSettings, pathToSettings);
+				if(ret != Helper.HelperResult.SUCCESS)
+				{
+					MessageBox.Show("Fail to open file" + pathToSettings);
+				}
+			}
+			else
+			{
+				pathToSettings = "";
+			}
+
 
 		}
 
@@ -151,33 +165,7 @@ namespace CustomPropertiesEditor
 			});
 		}
 
-		//help meth
-		private void writeSettingsToXml(string path)
-		{
-			DataTable dt = new DataTable();
-
-			dt.TableName = "settings";
-
-			dt.Columns.Add("property");
-			dt.Columns.Add("type");
-			dt.Columns.Add("value");
-
-			foreach (DataGridViewRow currentRow in dataGridView_swSettings.Rows)
-			{
-				dt.Rows.Add();
-				int runningCount = 0;
-				//loop trough each column of the row
-				foreach (DataGridViewCell item in currentRow.Cells)
-				{
-					dt.Rows[dt.Rows.Count - 1][runningCount] = item.FormattedValue;
-					runningCount++;
-				}
-			}
-
-			dt.WriteXml(path);
-			pathToSettings = path;
-		}
-
+		
 		//form methods
 		private void dataGridView_swFolder_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
 		{
@@ -305,64 +293,22 @@ namespace CustomPropertiesEditor
 			OpenFileDialog dialog = new OpenFileDialog();
 			dialog.Filter = "XML|*.xml";
 			dialog.Multiselect = false;
-
-			XmlDocument doc = new XmlDocument();
-
-			BindingList<PropertyObject> list = new BindingList<PropertyObject>();
-
+						
 			if (dialog.ShowDialog() != DialogResult.OK)
 			{
 				return;
 			}
 
-			pathToSettings = dialog.FileName;
-			doc.Load(pathToSettings);
-			Console.WriteLine("Loaded xml");
-
-			XmlElement el = doc.DocumentElement;
-
-			Console.WriteLine("elem:" + el.Name);
-
-			XmlNodeList elemList = doc.GetElementsByTagName("settings");
-
-			if(elemList.Count == 0)
+			Helper.HelperResult ret = Helper.OpenProperty(bindingSource_swSettings, dialog.FileName);
+			
+			if(ret != Helper.HelperResult.SUCCESS)
 			{
-				return;
+				MessageBox.Show("Fail to open file, or file has wrong format.");
 			}
-
-			for (int i = 0; i < elemList.Count; i++)
+			else
 			{
-				PropertyObject obj = new PropertyObject();
-
-				if (!elemList[i].HasChildNodes) continue;
-				obj.FieldName =  elemList[i].ChildNodes[0].InnerText;
-				if (string.IsNullOrEmpty(obj.FieldName)) continue;
-
-				if (elemList[i].ChildNodes[1].InnerText.ToLower() == "bool")
-				{
-					obj.Type_Data = TypeData.YesOrNo;
-				}
-				else if (elemList[i].ChildNodes[1].InnerText.ToLower() == "date")
-				{
-					obj.Type_Data = TypeData.Date;
-				}
-				else if (elemList[i].ChildNodes[1].InnerText.ToLower() == "num")
-				{
-					obj.Type_Data = TypeData.Num;
-				}
-				else
-				{
-					obj.Type_Data = TypeData.Text;
-				}
-
-				obj.Value = elemList[i].ChildNodes[2].InnerText;
-
-				list.Add(obj);
-
-				
+				pathToSettings = dialog.FileName;
 			}
-
-			bindingSource_swSettings.DataSource = list;
 
 		}
 
@@ -382,7 +328,8 @@ namespace CustomPropertiesEditor
 			{
 				try
 				{
-					writeSettingsToXml(pathToSettings);	
+					//writeSettingsToXml(pathToSettings);	
+					Helper.SaveProperty(bindingSource_swSettings, pathToSettings);
 				}
 				catch (Exception ex)
 				{
@@ -413,7 +360,8 @@ namespace CustomPropertiesEditor
 			{
 				try
 				{
-					writeSettingsToXml(sfd.FileName);
+					//writeSettingsToXml(sfd.FileName);
+					Helper.SaveProperty(bindingSource_swSettings, sfd.FileName);
 				}
 				catch(Exception ex)
 				{
@@ -429,6 +377,7 @@ namespace CustomPropertiesEditor
 			this.Enabled = false;
 			box.Owner = this;
 			box.Show();
+			
 		}
 
 		//buttons
@@ -556,7 +505,11 @@ namespace CustomPropertiesEditor
 		private void Form1_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			SolidworksSingleton.Dispose();
+			Properties.Settings.Default.PathToLustProperties = pathToSettings;
+			Properties.Settings.Default.Save();
 		}
+
+		 
 
 	}
 }

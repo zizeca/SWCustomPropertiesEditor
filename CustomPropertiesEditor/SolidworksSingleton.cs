@@ -22,7 +22,7 @@ namespace CustomPropertiesEditor
 		{
 			if(!ProcessChecked)
 			{
-				Process[] pname = Process.GetProcessesByName("SldWorks");
+				Process[] pname = Process.GetProcessesByName("SldWorks.exe");
 				if(pname.Length != 0)
 				{
 					SwWasStarted = true;
@@ -64,6 +64,7 @@ namespace CustomPropertiesEditor
 		{
 			if(swApp != null && !SwWasStarted)
 			{
+				swApp.CloseAllDocuments(true);
 				swApp.ExitApp();
 				swApp = null;
 			}

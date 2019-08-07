@@ -37,6 +37,7 @@
 			this.openPropertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.savePropertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.savePropertiesAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
 			this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.statusStrip1 = new System.Windows.Forms.StatusStrip();
@@ -55,7 +56,6 @@
 			this.radioButton_conf = new System.Windows.Forms.RadioButton();
 			this.radioButton_main = new System.Windows.Forms.RadioButton();
 			this.radioButton_all = new System.Windows.Forms.RadioButton();
-			this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
 			this.menuStrip1.SuspendLayout();
 			this.statusStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.bindingSource_swSettings)).BeginInit();
@@ -99,42 +99,47 @@
 			// addFileToolStripMenuItem
 			// 
 			this.addFileToolStripMenuItem.Name = "addFileToolStripMenuItem";
-			this.addFileToolStripMenuItem.Size = new System.Drawing.Size(252, 30);
+			this.addFileToolStripMenuItem.Size = new System.Drawing.Size(244, 30);
 			this.addFileToolStripMenuItem.Text = "Add file";
 			this.addFileToolStripMenuItem.Click += new System.EventHandler(this.addFileToolStripMenuItem_Click);
 			// 
 			// addFolderToolStripMenuItem
 			// 
 			this.addFolderToolStripMenuItem.Name = "addFolderToolStripMenuItem";
-			this.addFolderToolStripMenuItem.Size = new System.Drawing.Size(252, 30);
+			this.addFolderToolStripMenuItem.Size = new System.Drawing.Size(244, 30);
 			this.addFolderToolStripMenuItem.Text = "Add folder";
 			this.addFolderToolStripMenuItem.Click += new System.EventHandler(this.addFolderToolStripMenuItem_Click);
 			// 
 			// toolStripSeparator1
 			// 
 			this.toolStripSeparator1.Name = "toolStripSeparator1";
-			this.toolStripSeparator1.Size = new System.Drawing.Size(249, 6);
+			this.toolStripSeparator1.Size = new System.Drawing.Size(241, 6);
 			// 
 			// openPropertiesToolStripMenuItem
 			// 
 			this.openPropertiesToolStripMenuItem.Name = "openPropertiesToolStripMenuItem";
-			this.openPropertiesToolStripMenuItem.Size = new System.Drawing.Size(252, 30);
+			this.openPropertiesToolStripMenuItem.Size = new System.Drawing.Size(244, 30);
 			this.openPropertiesToolStripMenuItem.Text = "Open properties";
 			this.openPropertiesToolStripMenuItem.Click += new System.EventHandler(this.openPropertiesToolStripMenuItem_Click);
 			// 
 			// savePropertiesToolStripMenuItem
 			// 
 			this.savePropertiesToolStripMenuItem.Name = "savePropertiesToolStripMenuItem";
-			this.savePropertiesToolStripMenuItem.Size = new System.Drawing.Size(252, 30);
+			this.savePropertiesToolStripMenuItem.Size = new System.Drawing.Size(244, 30);
 			this.savePropertiesToolStripMenuItem.Text = "Save properties";
 			this.savePropertiesToolStripMenuItem.Click += new System.EventHandler(this.savePropertiesToolStripMenuItem_Click);
 			// 
 			// savePropertiesAsToolStripMenuItem
 			// 
 			this.savePropertiesAsToolStripMenuItem.Name = "savePropertiesAsToolStripMenuItem";
-			this.savePropertiesAsToolStripMenuItem.Size = new System.Drawing.Size(252, 30);
+			this.savePropertiesAsToolStripMenuItem.Size = new System.Drawing.Size(244, 30);
 			this.savePropertiesAsToolStripMenuItem.Text = "Save properties As";
 			this.savePropertiesAsToolStripMenuItem.Click += new System.EventHandler(this.savePropertiesAsToolStripMenuItem_Click);
+			// 
+			// toolStripSeparator2
+			// 
+			this.toolStripSeparator2.Name = "toolStripSeparator2";
+			this.toolStripSeparator2.Size = new System.Drawing.Size(241, 6);
 			// 
 			// helpToolStripMenuItem
 			// 
@@ -219,7 +224,7 @@
 			this.splitContainer1.Panel2.Controls.Add(this.dataGridView_swFolder);
 			this.splitContainer1.Panel2MinSize = 200;
 			this.splitContainer1.Size = new System.Drawing.Size(1073, 530);
-			this.splitContainer1.SplitterDistance = 502;
+			this.splitContainer1.SplitterDistance = 200;
 			this.splitContainer1.TabIndex = 3;
 			// 
 			// dataGridView_swSettings
@@ -235,7 +240,7 @@
 			this.dataGridView_swSettings.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
 			this.dataGridView_swSettings.RowTemplate.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
 			this.dataGridView_swSettings.RowTemplate.Height = 23;
-			this.dataGridView_swSettings.Size = new System.Drawing.Size(502, 530);
+			this.dataGridView_swSettings.Size = new System.Drawing.Size(200, 530);
 			this.dataGridView_swSettings.TabIndex = 0;
 			// 
 			// dataGridView_swFolder
@@ -251,7 +256,7 @@
 			this.dataGridView_swFolder.Name = "dataGridView_swFolder";
 			this.dataGridView_swFolder.ReadOnly = true;
 			this.dataGridView_swFolder.RowTemplate.Height = 28;
-			this.dataGridView_swFolder.Size = new System.Drawing.Size(567, 530);
+			this.dataGridView_swFolder.Size = new System.Drawing.Size(869, 530);
 			this.dataGridView_swFolder.TabIndex = 1;
 			this.dataGridView_swFolder.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridView_swFolder_CellFormatting);
 			this.dataGridView_swFolder.DragDrop += new System.Windows.Forms.DragEventHandler(this.dataGridView_swFolder_DragDrop);
@@ -328,11 +333,6 @@
 			this.radioButton_all.TabStop = true;
 			this.radioButton_all.Text = "all custom prp.";
 			this.radioButton_all.UseVisualStyleBackColor = true;
-			// 
-			// toolStripSeparator2
-			// 
-			this.toolStripSeparator2.Name = "toolStripSeparator2";
-			this.toolStripSeparator2.Size = new System.Drawing.Size(249, 6);
 			// 
 			// Form1
 			// 

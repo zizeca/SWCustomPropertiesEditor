@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace CustomPropertiesEditor
 {
@@ -93,6 +94,128 @@ namespace CustomPropertiesEditor
 				MessageBox.Show(e.Message);
 			}
 
+			return HelperResult.SUCCESS;
+		}
+
+		internal static HelperResult OpenProperty(BindingSource bindingSource, string path)
+		{
+			XmlDocument doc = new XmlDocument();
+
+			BindingList<PropertyObject> list = new BindingList<PropertyObject>();
+						
+
+			
+			doc.Load(path);
+			Console.WriteLine("Loaded xml");
+
+			XmlElement el = doc.DocumentElement;
+
+			Console.WriteLine("elem:" + el.Name);
+
+			XmlNodeList elemList = doc.GetElementsByTagName("property");
+
+			if (elemList.Count == 0)
+			{
+				return HelperResult.UNKNOWN;
+			}
+
+			for (int i = 0; i < elemList.Count; i++)
+			{
+				PropertyObject obj = new PropertyObject();
+
+				if (!elemList[i].HasChildNodes) continue;
+				obj.FieldName = elemList[i].ChildNodes[0].InnerText;
+				if (string.IsNullOrEmpty(obj.FieldName)) continue;
+
+				if (elemList[i].ChildNodes[1].InnerText.ToLower() == "bool")
+				{
+					obj.Type_Data = TypeData.YesOrNo;
+				}
+				else if (elemList[i].ChildNodes[1].InnerText.ToLower() == "date")
+				{
+					obj.Type_Data = TypeData.Date;
+				}
+				else if (elemList[i].ChildNodes[1].InnerText.ToLower() == "num")
+				{
+					obj.Type_Data = TypeData.Num;
+				}
+				else
+				{
+					obj.Type_Data = TypeData.Text;
+				}
+
+				obj.Value = elemList[i].ChildNodes[2].InnerText;
+
+				list.Add(obj);
+
+
+			}
+
+			bindingSource.DataSource = list;
+
+			return HelperResult.SUCCESS;
+		}
+
+		internal static HelperResult SaveProperty(BindingSource bindingSource, string path)
+		{
+			BindingList<PropertyObject> list = (BindingList<PropertyObject>)bindingSource.DataSource;
+
+			if(!list.Any())
+			{
+				return HelperResult.NOT_EXIST;
+			}
+
+			XmlDocument doc = new XmlDocument();
+			XmlNode docNode = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+			doc.AppendChild(docNode);
+
+			XmlNode propertiesNode = doc.CreateElement("properties");
+			doc.AppendChild(propertiesNode);
+
+			foreach (PropertyObject obj in list)
+			{
+				if (string.IsNullOrEmpty(obj.FieldName))
+					continue;
+
+				XmlNode propertyNode = doc.CreateElement("property");
+				propertiesNode.AppendChild(propertyNode);
+				//field name
+				XmlNode fieldNode = doc.CreateElement("field");
+				fieldNode.AppendChild(doc.CreateTextNode(obj.FieldName));
+				propertyNode.AppendChild(fieldNode);
+				//field type
+				XmlNode typeNode = doc.CreateElement("type");
+				XmlText typeText;
+				switch (obj.Type_Data)
+				{
+					case TypeData.Text:
+						typeText = doc.CreateTextNode("Text");
+						break;
+					case TypeData.YesOrNo:
+						typeText = doc.CreateTextNode("YesOrNo");
+						break;
+					case TypeData.Date:
+						typeText = doc.CreateTextNode("Date");
+						break;
+					case TypeData.Num:
+						typeText = doc.CreateTextNode("Num");
+						break;
+					default:
+						typeText = doc.CreateTextNode("Unknown");
+						break;
+				}
+				typeNode.AppendChild(typeText);
+				propertyNode.AppendChild(typeNode);
+				//field value
+				XmlNode valueNode = doc.CreateElement("value");
+				valueNode.AppendChild(doc.CreateTextNode(obj.Value));
+				propertyNode.AppendChild(valueNode);
+
+				//add elem
+				propertiesNode.AppendChild(propertyNode);
+			}
+
+			doc.Save(path);
 			return HelperResult.SUCCESS;
 		}
 
