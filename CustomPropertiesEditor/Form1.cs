@@ -533,6 +533,12 @@ namespace CustomPropertiesEditor
 
 			if (swApp == null)
 				toolStripStatusLabel_status.Text = "Lunch SolidWorks. Please wait";
+
+			this.Enabled = false;
+			Form f = new LoadForm();
+			
+			f.StartPosition = FormStartPosition.CenterParent;
+			f.Show(this);
 			swApp = await SolidworksSingleton.GetSwAppAsync();
 
 			Helper.HelperResult res = Helper.ImportProperties(swApp, bindingSource_swSettings, path);
@@ -541,12 +547,22 @@ namespace CustomPropertiesEditor
 			else
 				toolStripStatusLabel_status.Text = "Ready!";
 
+			f.Close();
+			this.Enabled = true;
 			//throw new NotImplementedException();
 		}
 
 		private void importItem_config_Click(object sender, EventArgs e)
 		{
-			throw new NotImplementedException();
+			
+
+			
+			Form form = new MessageForm();
+			form.ShowDialog(this);
+
+
+
+			//throw new NotImplementedException(); //
 		}
 
 		private void clearItem_filesTable_Click(object sender, EventArgs e)

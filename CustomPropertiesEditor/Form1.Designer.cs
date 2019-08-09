@@ -185,6 +185,7 @@
 			// 
 			// importItem_config
 			// 
+			this.importItem_config.Enabled = false;
 			this.importItem_config.Name = "importItem_config";
 			this.importItem_config.Size = new System.Drawing.Size(293, 30);
 			this.importItem_config.Text = "From configuration table";
