@@ -104,6 +104,20 @@ namespace CustomPropertiesEditor
 				pathToSettings = "";
 			}
 
+			toolStripButtonOpenProperties.Image = IconExtractor.Extract("shell32.dll", 279, true).ToBitmap();
+			toolStripButtonSaveProperties.Image = IconExtractor.Extract("shell32.dll", 258, true).ToBitmap();
+			toolStripButtonSavePropertiesAs.Image = IconExtractor.Extract("shell32.dll", 6, true).ToBitmap();
+			toolStripButtonClearProperties.Image = IconExtractor.Extract("shell32.dll", 31, true).ToBitmap();
+
+			toolStripButtonAddFile.Image = IconExtractor.Extract("shell32.dll", 279, true).ToBitmap();
+			toolStripButtonAddFolder.Image = IconExtractor.Extract("shell32.dll", 278, true).ToBitmap();
+			toolStripButtonClearFileTable.Image = IconExtractor.Extract("shell32.dll", 31, true).ToBitmap();
+			toolStripSplitButton_import.Image = IconExtractor.Extract("shell32.dll", 146, true).ToBitmap();
+
+			toolStripComboBox_addTo.Items.Add("All");
+			toolStripComboBox_addTo.Items.Add("Main");
+			toolStripComboBox_addTo.Items.Add("Configurations");
+			toolStripComboBox_addTo.SelectedIndex = Properties.Settings.Default.LustPropertiPreset;
 
 		}
 
@@ -148,6 +162,9 @@ namespace CustomPropertiesEditor
 			dataGridView_swFolder.AllowDrop = enable;
 			dataGridView_swFolder.AllowUserToDeleteRows = enable;
 
+			toolStrip1.Enabled = enable;
+			toolStrip2.Enabled = enable;
+			menuStrip1.Enabled = enable;
 
 			button_start.Enabled = enable;
 			button_cancel.Enabled = !enable;
@@ -385,14 +402,6 @@ namespace CustomPropertiesEditor
 		{
 			setEnableUiTools(false);
 
-			if (radioButton_conf.Checked)
-				propProcessFlag = Helper.PropProcessFlag.CONFIG_CUSTOM;
-			else if (radioButton_main.Checked)
-				propProcessFlag = Helper.PropProcessFlag.MAIN_CUSTOM;
-			else
-				propProcessFlag = Helper.PropProcessFlag.ALL;
-
-
 			//check tables
 			if (bindingSource_swSettings.Count == 0)
 			{
@@ -506,6 +515,7 @@ namespace CustomPropertiesEditor
 		{
 			SolidworksSingleton.Dispose();
 			Properties.Settings.Default.PathToLustProperties = pathToSettings;
+			Properties.Settings.Default.LustPropertiPreset = toolStripComboBox_addTo.SelectedIndex;
 			Properties.Settings.Default.Save();
 		}
 
@@ -574,6 +584,25 @@ namespace CustomPropertiesEditor
 		{
 			((BindingList<PropertyObject>)bindingSource_swSettings.DataSource).Clear();
 			pathToSettings = "";
+		}
+
+		private void ToolStripComboBox_addTo_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			int ret = toolStripComboBox_addTo.SelectedIndex;
+			switch (ret)
+			{
+				case 0:
+					propProcessFlag = Helper.PropProcessFlag.ALL;
+					break;
+				case 1:
+					propProcessFlag = Helper.PropProcessFlag.MAIN_CUSTOM;
+					break;
+				case 2:
+					propProcessFlag = Helper.PropProcessFlag.CONFIG_CUSTOM;
+					break;
+				default:
+					break;
+			}
 		}
 	}
 }
