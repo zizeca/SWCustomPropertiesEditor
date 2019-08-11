@@ -20,9 +20,10 @@ namespace CustomPropertiesEditor
 			InitializeComponent();
 		}
 
-		public SldWorks swApp;
-		public ModelDoc2 doc;
-		public List<string> configurations = new List<string>();
+		private SldWorks swApp;
+		private ModelDoc2 doc;
+		private List<string> configurations = new List<string>();
+		private string path;
 		private async void MessageForm_Load(object sender, EventArgs e)
 		{
 			OpenFileDialog dialog = new OpenFileDialog();
@@ -34,7 +35,7 @@ namespace CustomPropertiesEditor
 				return;
 			}
 
-			string path = dialog.FileName;
+			path = dialog.FileName;
 			if (!File.Exists(path))
 			{
 				this.Close();
@@ -49,8 +50,12 @@ namespace CustomPropertiesEditor
 			Form1 f = (Form1)this.Owner;
 
 			this.label1.Text = "Start Solidworks";
+			button_import.Enabled = false;
 			if (swApp == null)
 				swApp = await SolidworksSingleton.GetSwAppAsync();
+
+			this.label1.Text = "Choose configugation name\n and press import.";
+			button_import.Enabled = true;
 
 			string ext = Path.GetExtension(path);
 			swDocumentTypes_e type;
@@ -92,12 +97,22 @@ namespace CustomPropertiesEditor
 
 		private void MessageForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
-			if(doc != null)
+			if(doc != null && swApp != null)
 			{
-				doc.Close();
+				swApp.QuitDoc(doc.GetTitle());
 				doc = null;
 			}
+		}
 
+
+
+		private void Button_import_Click(object sender, EventArgs e)
+		{
+			Helper.HelperResult res = Helper.ImportProperties(swApp,
+				((Form1)this.Owner).bindingSource_swSettings,
+				path, comboBox_config.SelectedItem.ToString()
+				);
+			this.Close();
 		}
 	}
 }

@@ -77,10 +77,10 @@
 			this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
 			this.toolStripButtonClearFileTable = new System.Windows.Forms.ToolStripButton();
 			this.toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
+			this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
 			this.toolStripComboBox_addTo = new System.Windows.Forms.ToolStripComboBox();
 			this.button_cancel = new System.Windows.Forms.Button();
 			this.button_start = new System.Windows.Forms.Button();
-			this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
 			this.menuStrip1.SuspendLayout();
 			this.statusStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.bindingSource_swSettings)).BeginInit();
@@ -207,7 +207,6 @@
 			// 
 			// importItem_config
 			// 
-			this.importItem_config.Enabled = false;
 			this.importItem_config.Name = "importItem_config";
 			this.importItem_config.Size = new System.Drawing.Size(191, 22);
 			this.importItem_config.Text = "From configuration table";
@@ -540,6 +539,12 @@
 			this.toolStripSeparator8.Name = "toolStripSeparator8";
 			this.toolStripSeparator8.Size = new System.Drawing.Size(6, 30);
 			// 
+			// toolStripLabel1
+			// 
+			this.toolStripLabel1.Name = "toolStripLabel1";
+			this.toolStripLabel1.Size = new System.Drawing.Size(125, 27);
+			this.toolStripLabel1.Text = "Add to custom property:";
+			// 
 			// toolStripComboBox_addTo
 			// 
 			this.toolStripComboBox_addTo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -572,12 +577,6 @@
 			this.button_start.Text = "Start";
 			this.button_start.UseVisualStyleBackColor = true;
 			this.button_start.Click += new System.EventHandler(this.button_start_Click);
-			// 
-			// toolStripLabel1
-			// 
-			this.toolStripLabel1.Name = "toolStripLabel1";
-			this.toolStripLabel1.Size = new System.Drawing.Size(125, 27);
-			this.toolStripLabel1.Text = "Add to custom property:";
 			// 
 			// Form1
 			// 
@@ -634,7 +633,6 @@
 		private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
 		private System.Windows.Forms.StatusStrip statusStrip1;
 		private System.Windows.Forms.BindingSource bindingSource_swFolder;
-		private System.Windows.Forms.BindingSource bindingSource_swSettings;
 		private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
 		private System.Windows.Forms.Button button_cancel;
 		private System.Windows.Forms.Button button_start;
@@ -673,6 +671,7 @@
 		private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
 		private System.Windows.Forms.ToolStripComboBox toolStripComboBox_addTo;
 		private System.Windows.Forms.ToolStripLabel toolStripLabel1;
+		internal System.Windows.Forms.BindingSource bindingSource_swSettings;
 	}
 }
 

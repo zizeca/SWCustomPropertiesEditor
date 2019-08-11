@@ -549,7 +549,23 @@ namespace CustomPropertiesEditor
 			
 			f.StartPosition = FormStartPosition.CenterParent;
 			f.Show(this);
-			swApp = await SolidworksSingleton.GetSwAppAsync();
+
+			int timeout = 10000;
+			Task<SldWorks> task = SolidworksSingleton.GetSwAppAsync();
+			//swApp = await SolidworksSingleton.GetSwAppAsync();
+			if (await Task.WhenAny(task, Task.Delay(timeout)) == task)
+			{
+				swApp = await task;
+			}
+			else
+			{
+				f.Close();
+				this.Enabled = true;
+				MessageBox.Show("Time out");
+				return;
+			}
+
+
 
 			Helper.HelperResult res = Helper.ImportProperties(swApp, bindingSource_swSettings, path);
 			if (res != Helper.HelperResult.SUCCESS)

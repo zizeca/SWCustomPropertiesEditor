@@ -223,6 +223,9 @@ namespace CustomPropertiesEditor
 		internal static HelperResult ImportProperties(SldWorks swApp ,BindingSource bindingSource, 
 			string path, string configName="")
 		{
+			Console.WriteLine("Import: path={0}, config={1}", path, configName);
+
+
 			if (swApp == null)
 				return HelperResult.SLDWORKS_NOT_RUNNING;
 
@@ -241,8 +244,16 @@ namespace CustomPropertiesEditor
 
 			int Error = 0;
 			int Warning = 0;
+			ModelDoc2 doc;
 
-			ModelDoc2 doc = swApp.OpenDoc6(path, (int)type, (int)swOpenDocOptions_e.swOpenDocOptions_Silent, configName ,ref Error, ref Warning);
+			if (((ModelDoc2)swApp.ActiveDoc).GetPathName().ToLower() == path.ToLower())
+			{
+				doc = (ModelDoc2)swApp.ActiveDoc;
+			}
+			else
+			{
+				doc = swApp.OpenDoc6(path, (int)type, (int)swOpenDocOptions_e.swOpenDocOptions_Silent, configName ,ref Error, ref Warning);
+			}
 
 			if (Error != 0)
 			{
@@ -255,7 +266,7 @@ namespace CustomPropertiesEditor
 
 			string[] names = manager.GetNames();
 
-			if (!names.Any())
+			if (names ==null || !names.Any())
 				return HelperResult.NOT_EXIST;
 
 			BindingList<PropertyObject> list = new BindingList<PropertyObject>();
