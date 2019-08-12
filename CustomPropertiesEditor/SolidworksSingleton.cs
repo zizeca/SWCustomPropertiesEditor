@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using SolidWorks.Interop.sldworks;
 
 namespace CustomPropertiesEditor
@@ -22,7 +23,7 @@ namespace CustomPropertiesEditor
 		{
 			if(!ProcessChecked)
 			{
-				Process[] pname = Process.GetProcessesByName("SldWorks.exe");
+				Process[] pname = Process.GetProcessesByName("SldWorks");
 				if(pname.Length != 0)
 				{
 					SwWasStarted = true;
@@ -67,6 +68,21 @@ namespace CustomPropertiesEditor
 				swApp.CloseAllDocuments(true);
 				swApp.ExitApp();
 				swApp = null;
+
+				//if process is not close
+				try
+				{
+					foreach (Process proc in Process.GetProcessesByName("SldWorks"))
+					{
+						proc.Kill();
+					}
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show(ex.Message);
+				}
+
+
 			}
 		}
 

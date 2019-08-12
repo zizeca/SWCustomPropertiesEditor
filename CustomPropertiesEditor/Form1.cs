@@ -116,8 +116,10 @@ namespace CustomPropertiesEditor
 
 			toolStripComboBox_addTo.Items.Add("All");
 			toolStripComboBox_addTo.Items.Add("Main");
-			toolStripComboBox_addTo.Items.Add("Configurations");
+			toolStripComboBox_addTo.Items.Add("Config");
 			toolStripComboBox_addTo.SelectedIndex = Properties.Settings.Default.LustPropertiPreset;
+
+			splitContainer1.SplitterDistance = splitContainer1.Size.Width / 2;
 
 		}
 
@@ -379,6 +381,7 @@ namespace CustomPropertiesEditor
 				{
 					//writeSettingsToXml(sfd.FileName);
 					Helper.SaveProperty(bindingSource_swSettings, sfd.FileName);
+					pathToSettings = sfd.FileName;
 				}
 				catch(Exception ex)
 				{
