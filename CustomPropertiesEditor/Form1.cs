@@ -251,6 +251,7 @@ namespace CustomPropertiesEditor
 		private void addFolderToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			FolderBrowserDialog dialog = new FolderBrowserDialog();
+			dialog.ShowNewFolderButton = false;
 			
 			DialogResult result = dialog.ShowDialog();
 			if(result == DialogResult.OK)

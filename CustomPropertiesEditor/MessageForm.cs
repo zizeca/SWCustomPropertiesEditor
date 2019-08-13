@@ -28,6 +28,7 @@ namespace CustomPropertiesEditor
 		{
 			OpenFileDialog dialog = new OpenFileDialog();
 			dialog.Multiselect = false;
+			dialog.Filter = "Solidworks 3d (*.sldprt;*.sldasm)|*.sldprt;*.sldasm|Parts (*.sldprt)|*.sldprt|Assemblies (*.sldasm)";
 
 			if (dialog.ShowDialog() != DialogResult.OK)
 			{
@@ -112,6 +113,11 @@ namespace CustomPropertiesEditor
 				((Form1)this.Owner).bindingSource_swSettings,
 				path, comboBox_config.SelectedItem.ToString()
 				);
+			this.Close();
+		}
+
+		private void button_Cancel_Click(object sender, EventArgs e)
+		{
 			this.Close();
 		}
 	}
