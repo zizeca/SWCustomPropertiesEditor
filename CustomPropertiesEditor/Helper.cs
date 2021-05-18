@@ -246,7 +246,9 @@ namespace CustomPropertiesEditor
 			int Warning = 0;
 			ModelDoc2 doc;
 
-			if (((ModelDoc2)swApp.ActiveDoc).GetPathName().ToLower() == path.ToLower())
+
+			// checking if the document is open
+			if (((ModelDoc2)swApp.ActiveDoc) != null && ((ModelDoc2)swApp.ActiveDoc).GetPathName().ToLower() == path.ToLower())
 			{
 				doc = (ModelDoc2)swApp.ActiveDoc;
 			}

@@ -28,7 +28,7 @@ namespace CustomPropertiesEditor
 		{
 			OpenFileDialog dialog = new OpenFileDialog();
 			dialog.Multiselect = false;
-			dialog.Filter = "Solidworks 3d (*.sldprt;*.sldasm)|*.sldprt;*.sldasm|Parts (*.sldprt)|*.sldprt|Assemblies (*.sldasm)";
+			dialog.Filter = "Solidworks 3d (*.sldprt;*.sldasm)|*.sldprt;*.sldasm|Parts (*.sldprt)|*.sldprt|Assemblies (*.sldasm)|*.sldasm";
 
 			if (dialog.ShowDialog() != DialogResult.OK)
 			{
