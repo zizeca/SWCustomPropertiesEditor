@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
@@ -376,6 +377,16 @@ namespace CustomPropertiesEditor
 							CustomPropertyManager manager = swDoc.Extension.CustomPropertyManager[conf];
 							foreach (PropertyObject property in prop_list)
 							{
+								string value = property.Value;
+								string pattern = @"[^@]+";
+
+								MatchCollection matches = Regex.Matches(value, pattern);
+
+								if(matches.Count>=3)
+								{
+									property.Value = Regex.Replace(value, matches[matches.Count - 2].Value, conf);
+								}
+
 								Console.WriteLine("field={0},type={1},value={2},config{3}", property.FieldName, property.FieldType, property.Value,conf);
 								int ret = manager.Add3(property.FieldName, (int)property.FieldType, property.Value, (int)swCustomPropertyAddOption_e.swCustomPropertyReplaceValue);
 								if (ret != 0)
